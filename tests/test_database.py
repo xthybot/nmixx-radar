@@ -2,6 +2,7 @@ from pathlib import Path
 import stat
 import tempfile
 import unittest
+from unittest.mock import MagicMock, patch
 
 from app.config import Settings
 from app.database import Database
@@ -43,6 +44,29 @@ class DatabaseTests(unittest.TestCase):
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                         ("session", 999, "hash", "https", "now", "now", "later", "later"),
                     )
+
+    @patch("app.database.sqlite3.connect")
+    def test_connection_context_closes_sqlite_connection(self, connect_mock: MagicMock) -> None:
+        raw_connection = connect_mock.return_value
+        with tempfile.TemporaryDirectory() as directory:
+            database = Database(Settings.for_test(Path(directory) / "runtime"))
+            with database.connect():
+                pass
+        raw_connection.close.assert_called_once()
+
+    def test_connection_context_commits_successful_transaction(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            database = Database(Settings.for_test(Path(directory) / "runtime"))
+            database.initialize()
+            with database.connect() as connection:
+                connection.execute(
+                    "INSERT INTO users (username, password_hash, role, created_at, updated_at) "
+                    "VALUES (?, ?, ?, ?, ?)",
+                    ("member", "hash", "member", "now", "now"),
+                )
+            with database.connect() as connection:
+                user = connection.execute("SELECT username FROM users WHERE username = ?", ("member",)).fetchone()
+            self.assertEqual(user["username"], "member")
 
 
 if __name__ == "__main__":
