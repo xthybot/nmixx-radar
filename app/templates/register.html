@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>受邀註冊｜NMIXX Radar</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ asset_version }}">
+  </head>
+  <body class="auth-page">
+    <main class="auth-card">
+      <p class="source-pill">◎ NMIXX Radar</p>
+      <h1>建立帳號</h1>
+      <p>請輸入管理者提供的一次性邀請碼。</p>
+      {% if error %}<p class="auth-error" role="alert">{{ error }}</p>{% endif %}
+      <form method="post" action="/register" class="auth-form">
+        <label>邀請碼<input name="invitation_code" autocomplete="off" required></label>
+        <label>帳號<input name="username" autocomplete="username" required></label>
+        <label>密碼<input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
+        <button class="primary-action" type="submit">建立帳號 <span>›</span></button>
+      </form>
+    </main>
+  </body>
+</html>

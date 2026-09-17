@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.access import Transport, request_transport
-from app.auth import AuthService, AuthenticationError, AuthenticatedSession, SessionError
+from app.auth import AuthService, AuthenticationError, AuthenticatedSession, InvitationError, SessionError
 from app.config import Settings
 from app.database import Database
 from app.image_proxy import get_optimized_image, image_url
@@ -115,6 +115,40 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "login.html",
                 {"asset_version": ASSET_VERSION, "error": "帳號或密碼錯誤。"},
                 status_code=401,
+            )
+        response = RedirectResponse("/", status_code=303)
+        set_session_cookie(response, session)
+        return response
+
+    @application.get("/register", response_class=HTMLResponse)
+    async def registration_form(request: Request) -> HTMLResponse:
+        if session_for(request):
+            return login_redirect()
+        return templates.TemplateResponse(request, "register.html", {"asset_version": ASSET_VERSION, "error": None})
+
+    @application.post("/register")
+    async def register(
+        request: Request,
+        invitation_code: str = Form(),
+        username: str = Form(),
+        password: str = Form(),
+    ) -> Response:
+        transport = transport_for(request)
+        if transport is Transport.PUBLIC_HTTP:
+            raise HTTPException(status_code=403, detail="Registration requires HTTPS or a private local network.")
+        try:
+            user = auth.register(invitation_code, username, password)
+            session = auth.authenticate(
+                user.username,
+                password,
+                "https" if transport is Transport.HTTPS else "lan",
+            )
+        except (InvitationError, ValueError):
+            return templates.TemplateResponse(
+                request,
+                "register.html",
+                {"asset_version": ASSET_VERSION, "error": "邀請碼、帳號或密碼無效。"},
+                status_code=400,
             )
         response = RedirectResponse("/", status_code=303)
         set_session_cookie(response, session)

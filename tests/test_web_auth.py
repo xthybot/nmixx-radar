@@ -43,6 +43,28 @@ class WebAuthenticationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIn("invitation_code", response.json())
 
+    def test_invited_member_can_register_and_log_in(self) -> None:
+        self.client.post(
+            "/login",
+            data={"username": "admin", "password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+        invitation = self.client.post("/admin/invitations").json()["invitation_code"]
+        member_client = TestClient(create_app(self.settings), base_url="https://radar.test")
+        registration = member_client.post(
+            "/register",
+            data={
+                "invitation_code": invitation,
+                "username": "member",
+                "password": "member-password-2026",
+            },
+            follow_redirects=False,
+        )
+
+        self.assertEqual(registration.status_code, 303)
+        self.assertIn("radar_https_session", registration.headers["set-cookie"])
+        self.assertEqual(member_client.get("/", follow_redirects=False).status_code, 200)
+
 
 if __name__ == "__main__":
     unittest.main()
