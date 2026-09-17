@@ -172,6 +172,29 @@ class WebAuthenticationTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_lan_http_allows_login_but_not_invitation_registration(self) -> None:
+        lan_client = TestClient(
+            create_app(self.settings),
+            base_url="http://radar.test",
+            client=("192.168.1.20", 50000),
+        )
+
+        login = lan_client.post(
+            "/login",
+            data={"username": "admin", "password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(login.status_code, 303)
+        self.assertIn("radar_lan_session", login.headers["set-cookie"])
+        self.assertEqual(
+            lan_client.post(
+                "/register",
+                data={"invitation_code": "unused", "username": "member", "password": "member-password-2026"},
+            ).status_code,
+            403,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

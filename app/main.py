@@ -167,6 +167,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @application.get("/register", response_class=HTMLResponse)
     async def registration_form(request: Request) -> Response:
+        if transport_for(request) is not Transport.HTTPS:
+            raise HTTPException(status_code=403, detail="Registration requires HTTPS.")
         if session_for(request):
             return login_redirect()
         return templates.TemplateResponse(request, "register.html", {"asset_version": ASSET_VERSION, "error": None})
@@ -179,8 +181,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         password: str = Form(),
     ) -> Response:
         transport = transport_for(request)
-        if transport is Transport.PUBLIC_HTTP:
-            raise HTTPException(status_code=403, detail="Registration requires HTTPS or a private local network.")
+        if transport is not Transport.HTTPS:
+            raise HTTPException(status_code=403, detail="Registration requires HTTPS.")
         peer = request.client.host if request.client else "unknown"
         try:
             user = auth.register(invitation_code, username, password)
