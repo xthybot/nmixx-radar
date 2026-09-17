@@ -13,7 +13,7 @@ class RepositoryHygieneTests(unittest.TestCase):
 
     def test_private_runtime_paths_are_ignored(self) -> None:
         ignored = (PROJECT_ROOT / ".gitignore").read_text(encoding="utf-8")
-        for path in (".env", "data/", ".push_state/", ".update_state/", ".image_cache/"):
+        for path in (".env", "data/"):
             with self.subTest(path=path):
                 self.assertIn(path, ignored)
 

@@ -94,9 +94,27 @@ class AuthService:
             ).fetchone()
         return self._user_from_row(row) if row else None
 
+    def list_users(self) -> list[User]:
+        with self.database.connect() as connection:
+            rows = connection.execute(
+                "SELECT id, username, role, is_active FROM users ORDER BY role DESC, username COLLATE NOCASE"
+            ).fetchall()
+        return [self._user_from_row(row) for row in rows]
+
     def set_user_active(self, user_id: int, is_active: bool, now: datetime | None = None) -> None:
         current_time = now or datetime.now(UTC)
         with self.database.connect() as connection:
+            target = connection.execute(
+                "SELECT role, is_active FROM users WHERE id = ?", (user_id,)
+            ).fetchone()
+            if not target:
+                raise ValueError("User was not found.")
+            if not is_active and target["role"] == "admin" and target["is_active"]:
+                active_admin_count = connection.execute(
+                    "SELECT COUNT(*) AS count FROM users WHERE role = 'admin' AND is_active = 1"
+                ).fetchone()["count"]
+                if active_admin_count <= 1:
+                    raise ValueError("The last active administrator cannot be disabled.")
             connection.execute(
                 "UPDATE users SET is_active = ?, updated_at = ? WHERE id = ?",
                 (int(is_active), _timestamp(current_time), user_id),
@@ -106,6 +124,23 @@ class AuthService:
                     "UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL",
                     (_timestamp(current_time), user_id),
                 )
+
+    def set_password(self, user_id: int, password: str, now: datetime | None = None) -> None:
+        if len(password) < PASSWORD_MINIMUM_LENGTH:
+            raise ValueError(f"Password must be at least {PASSWORD_MINIMUM_LENGTH} characters.")
+        current_time = now or datetime.now(UTC)
+        with self.database.connect() as connection:
+            target = connection.execute("SELECT id FROM users WHERE id = ?", (user_id,)).fetchone()
+            if not target:
+                raise ValueError("User was not found.")
+            connection.execute(
+                "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
+                (self.password_hasher.hash(password), _timestamp(current_time), user_id),
+            )
+            connection.execute(
+                "UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL",
+                (_timestamp(current_time), user_id),
+            )
 
     def create_invitation(
         self, created_by_user_id: int, now: datetime | None = None, valid_days: int = 7
@@ -230,6 +265,14 @@ class AuthService:
             connection.execute(
                 "UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL",
                 (_timestamp(current_time), user_id),
+            )
+
+    def revoke_session(self, session_id: str, now: datetime | None = None) -> None:
+        current_time = now or datetime.now(UTC)
+        with self.database.connect() as connection:
+            connection.execute(
+                "UPDATE sessions SET revoked_at = ? WHERE id = ? AND revoked_at IS NULL",
+                (_timestamp(current_time), session_id),
             )
 
     def _create_user(

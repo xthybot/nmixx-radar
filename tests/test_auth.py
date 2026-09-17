@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from app.auth import AuthService, AuthenticationError, InvitationError
+from app.auth import AuthService, AuthenticationError, InvitationError, SessionError
 from app.config import Settings
 from app.database import Database
 
@@ -50,11 +50,37 @@ class AuthServiceTests(unittest.TestCase):
         with self.assertRaises(AuthenticationError):
             self.service.authenticate("admin", "wrong-password", "https", now=self.now)
 
-        self.service.set_user_active(admin.id, False, now=self.now)
+        invitation = self.service.create_invitation(admin.id, now=self.now)
+        member = self.service.register(invitation, "member", "member-password-2026", now=self.now)
+        self.service.set_user_active(member.id, False, now=self.now)
         with self.assertRaises(AuthenticationError):
             self.service.authenticate(
-                "admin", "test-password-not-for-production", "https", now=self.now
+                "member", "member-password-2026", "https", now=self.now
             )
+
+    def test_password_reset_revokes_sessions_and_uses_the_new_password(self) -> None:
+        admin = self.service.bootstrap_admin(now=self.now)
+        assert admin is not None
+        session = self.service.authenticate(
+            "admin", "test-password-not-for-production", "https", now=self.now
+        )
+
+        self.service.set_password(admin.id, "new-password-for-admin", now=self.now)
+
+        with self.assertRaises(AuthenticationError):
+            self.service.authenticate("admin", "test-password-not-for-production", "https", now=self.now)
+        with self.assertRaises(SessionError):
+            self.service.load_session(session.token, "https", now=self.now)
+        self.assertTrue(
+            self.service.authenticate("admin", "new-password-for-admin", "https", now=self.now).token
+        )
+
+    def test_last_active_administrator_cannot_be_disabled(self) -> None:
+        admin = self.service.bootstrap_admin(now=self.now)
+        assert admin is not None
+
+        with self.assertRaises(ValueError):
+            self.service.set_user_active(admin.id, False, now=self.now)
 
 
 if __name__ == "__main__":

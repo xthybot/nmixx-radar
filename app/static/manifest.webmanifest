@@ -1,0 +1,18 @@
+{
+  "name": "NMIXX 情報站",
+  "short_name": "NMIXX",
+  "description": "整理 NMIXX 官方公告、影片、行程與成員動態。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0d11",
+  "theme_color": "#0b0d11",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

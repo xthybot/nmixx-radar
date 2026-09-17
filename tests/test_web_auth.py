@@ -93,6 +93,85 @@ class WebAuthenticationTests(unittest.TestCase):
         self.assertEqual(renewal.status_code, 303)
         self.assertNotEqual(self.client.cookies.get("radar_https_session"), token)
 
+    def test_push_management_requires_https_and_binds_to_logged_in_user(self) -> None:
+        self.client.post(
+            "/login",
+            data={"username": "admin", "password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+        invitation = self.client.post("/admin/invitations").json()["invitation_code"]
+        member_client = TestClient(create_app(self.settings), base_url="https://radar.test")
+        member_client.post(
+            "/register",
+            data={
+                "invitation_code": invitation,
+                "username": "member",
+                "password": "member-password-2026",
+            },
+            follow_redirects=False,
+        )
+        subscription = {
+            "endpoint": "https://push.example.test/subscription/opaque-token",
+            "keys": {"p256dh": "public-key", "auth": "auth-key"},
+        }
+
+        self.assertEqual(member_client.get("/api/push/public-key").status_code, 200)
+        self.assertEqual(member_client.post("/api/push/subscribe", json=subscription).status_code, 201)
+        with self.client.app.state.database.connect() as connection:
+            owner = connection.execute(
+                "SELECT user_id FROM push_subscriptions WHERE endpoint = ?", (subscription["endpoint"],)
+            ).fetchone()
+        self.assertEqual(owner["user_id"], 2)
+        public_client = TestClient(create_app(self.settings), base_url="http://radar.test")
+        self.assertEqual(public_client.get("/api/push/public-key").status_code, 403)
+
+    def test_admin_can_reset_member_password_and_revoke_member_sessions(self) -> None:
+        self.client.post(
+            "/login",
+            data={"username": "admin", "password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+        invitation = self.client.post("/admin/invitations").json()["invitation_code"]
+        member_client = TestClient(create_app(self.settings), base_url="https://radar.test")
+        member_client.post(
+            "/register",
+            data={
+                "invitation_code": invitation,
+                "username": "member",
+                "password": "member-password-2026",
+            },
+            follow_redirects=False,
+        )
+        member = self.client.app.state.auth.get_user_by_username("member")
+        assert member is not None
+
+        reset = self.client.post(
+            f"/admin/users/{member.id}/password",
+            data={"password": "member-password-reset-2026"},
+            follow_redirects=False,
+        )
+
+        self.assertEqual(self.client.get("/admin").status_code, 200)
+        self.assertEqual(reset.status_code, 303)
+        self.assertEqual(member_client.get("/", follow_redirects=False).status_code, 303)
+        login = member_client.post(
+            "/login",
+            data={"username": "member", "password": "member-password-reset-2026"},
+            follow_redirects=False,
+        )
+        self.assertEqual(login.status_code, 303)
+
+    def test_https_state_changing_request_rejects_a_foreign_browser_origin(self) -> None:
+        self.client.post(
+            "/login",
+            data={"username": "admin", "password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+
+        response = self.client.post("/admin/invitations", headers={"origin": "https://attacker.example"})
+
+        self.assertEqual(response.status_code, 403)
+
 
 if __name__ == "__main__":
     unittest.main()

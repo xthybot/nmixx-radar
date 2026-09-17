@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b0d11">
+    <title>管理後台｜NMIXX Radar</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ asset_version }}">
+  </head>
+  <body class="admin-page">
+    <main class="admin-shell">
+      <header class="admin-header">
+        <div><p class="source-pill">管理後台 · HTTPS</p><h1>成員與邀請</h1></div>
+        <a class="secondary-action" href="/">回情報站</a>
+      </header>
+
+      <section class="admin-panel">
+        <h2>建立一次性邀請碼</h2>
+        <p>邀請碼有效 7 天，使用一次後即失效。請透過可信管道傳送。</p>
+        <button class="primary-action" type="button" data-create-invitation>建立邀請碼 <span>›</span></button>
+        <output class="invitation-code" data-invitation-code aria-live="polite"></output>
+      </section>
+
+      <section class="admin-panel">
+        <h2>帳號管理</h2>
+        <p>停用與重設密碼會撤銷該帳號所有登入 session；Push 訂閱不會因 session 到期而被刪除。</p>
+        <div class="admin-users">
+          {% for user in users %}
+            <article class="admin-user">
+              <div>
+                <strong>{{ user.username }}</strong>
+                <span>{{ "管理者" if user.role == "admin" else "成員" }} · {{ "啟用中" if user.is_active else "已停用" }}</span>
+              </div>
+              <div class="admin-actions">
+                {% if user.is_active %}
+                  <form method="post" action="/admin/users/{{ user.id }}/disable"><button type="submit">停用</button></form>
+                {% else %}
+                  <form method="post" action="/admin/users/{{ user.id }}/enable"><button type="submit">啟用</button></form>
+                {% endif %}
+                <form method="post" action="/admin/users/{{ user.id }}/sessions/revoke"><button type="submit">撤銷登入</button></form>
+                <form method="post" action="/admin/users/{{ user.id }}/password" class="password-reset">
+                  <input name="password" type="password" autocomplete="new-password" minlength="12" placeholder="新密碼（至少 12 字元）" required>
+                  <button type="submit">重設密碼</button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+    <script>
+      const button = document.querySelector("[data-create-invitation]");
+      const output = document.querySelector("[data-invitation-code]");
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try {
+          const response = await fetch("/admin/invitations", { method: "POST" });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.detail || "建立失敗");
+          output.textContent = data.invitation_code;
+        } catch (error) {
+          output.textContent = "建立邀請碼失敗，請重新登入後再試。";
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

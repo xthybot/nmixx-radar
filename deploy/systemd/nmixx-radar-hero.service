@@ -1,0 +1,19 @@
+[Unit]
+Description=NMIXX Radar hero image refresh
+After=network-online.target nmixx-radar.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=nmixx-radar
+Group=nmixx-radar
+WorkingDirectory=/opt/nmixx-radar
+EnvironmentFile=/opt/nmixx-radar/.env
+Environment=PATH=/home/nmixx-radar/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/env uv run --frozen python -m app.hero_image_watcher --once --respect-interval
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/opt/nmixx-radar/data

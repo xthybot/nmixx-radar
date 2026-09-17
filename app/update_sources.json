@@ -1,0 +1,47 @@
+{
+  "interval_seconds": 900,
+  "sources": [
+    {
+      "name": "JYP NMIXX Notice",
+      "url": "https://nmixx.jype.com/Mobile/NoticeList",
+      "tag": "公告",
+      "tone": "lime"
+    },
+    {
+      "name": "JYP NMIXX Schedule",
+      "url": "https://nmixx.jype.com/Mobile/Schedule",
+      "tag": "行程",
+      "tone": "blue"
+    },
+    {
+      "name": "JYP NMIXX Discography",
+      "url": "https://nmixx.jype.com/Mobile/DiscographyList",
+      "tag": "發行",
+      "tone": "pink"
+    },
+    {
+      "name": "NMIXX Official YouTube",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCnUAyD4t2LkvW68YrDh7fDg",
+      "tag": "影片",
+      "tone": "white"
+    },
+    {
+      "name": "Google News NMIXX zh-TW",
+      "url": "https://news.google.com/rss/search?q=NMIXX%20when%3A7d&hl=zh-TW&gl=TW&ceid=TW%3Azh-Hant",
+      "tag": "新聞",
+      "tone": "blue"
+    },
+    {
+      "name": "Google News NMIXX en-US",
+      "url": "https://news.google.com/rss/search?q=NMIXX%20when%3A7d&hl=en-US&gl=US&ceid=US%3Aen",
+      "tag": "新聞",
+      "tone": "blue"
+    },
+    {
+      "name": "Google News NMIXX ko-KR",
+      "url": "https://news.google.com/rss/search?q=NMIXX%20%EC%97%94%EB%AF%B9%EC%8A%A4%20when%3A7d&hl=ko&gl=KR&ceid=KR%3Ako",
+      "tag": "新聞",
+      "tone": "pink"
+    }
+  ]
+}

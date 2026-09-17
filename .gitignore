@@ -7,9 +7,6 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 python-*-check.png
-.update_state/
-.push_state/
-.image_cache/
 .DS_Store
 *.sqlite3
 *.sqlite3-shm
