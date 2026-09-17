@@ -1,7 +1,7 @@
 [project]
-name = "idol-site-py"
+name = "nmixx-radar"
 version = "0.1.0"
-description = "Python FastAPI version of the NMIXX idol site."
+description = "An invitation-only NMIXX information radar built with FastAPI."
 requires-python = ">=3.12"
 dependencies = [
     "argon2-cffi>=25.1.0",

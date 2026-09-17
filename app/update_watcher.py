@@ -28,7 +28,7 @@ from app.url_policy import is_allowed_external_url
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = PROJECT_ROOT / "app" / "update_sources.json"
-USER_AGENT = "idol-site-py-update-watcher/0.1"
+USER_AGENT = "nmixx-radar-update-watcher/1.0"
 MIN_AI_CONFIDENCE = 0.7
 TAIPEI_TZ = ZoneInfo("Asia/Taipei")
 

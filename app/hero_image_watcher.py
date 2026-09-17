@@ -17,7 +17,7 @@ from app.runtime_data import RuntimeDataStore
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE_URL = "https://nmixx.jype.com/Default/Gallery"
-USER_AGENT = "idol-site-py-hero-image-watcher/0.1"
+USER_AGENT = "nmixx-radar-hero-image-watcher/1.0"
 GALLERY_IMAGE_HOSTS = (
     "d1al7qj7ydfbpt.cloudfront.net",
     "d1meds70430yck.cloudfront.net",
