@@ -20,6 +20,9 @@ class DeploymentFilesTests(unittest.TestCase):
                 self.assertIn("EnvironmentFile=/opt/nmixx-radar/.env", content)
                 self.assertIn(command, content)
                 self.assertNotIn("User=root", content)
+        website_unit = (units / "nmixx-radar.service").read_text(encoding="utf-8")
+        self.assertIn("--host ${APP_HOST}", website_unit)
+        self.assertIn("--port ${APP_PORT}", website_unit)
         for filename in ("nmixx-radar-update.timer", "nmixx-radar-hero.timer"):
             content = (units / filename).read_text(encoding="utf-8")
             self.assertIn("OnUnitActiveSec=1min", content)
