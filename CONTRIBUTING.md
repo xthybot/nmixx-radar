@@ -1,5 +1,5 @@
-# Contributing
+# 貢獻指南
 
-Open an issue before substantial changes. Keep changes focused, add a regression test before production code, run the complete test suite and static checks, and never commit `.env`, `data/`, keys, subscriptions, caches, or generated local state.
+若要進行較大的調整，請先建立 Issue 討論。變更應保持聚焦；在正式程式碼之前加入回歸測試；提交前執行完整測試與靜態檢查；且絕不可提交 `.env`、`data/`、金鑰、訂閱資料、快取或本機產生的狀態。
 
-This project is an unofficial fan-made information tool. Contributions must respect source-site terms, copyright, privacy, and the distinction between official notices and third-party RSS news.
+本專案是非官方的粉絲資訊工具。貢獻內容必須遵守來源網站條款、著作權與隱私要求，並清楚區分官方公告與第三方 RSS 新聞。
