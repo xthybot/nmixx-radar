@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NMIXX 情報站</title>
+    <meta name="description" content="整理 NMIXX 官方公告、影片、行程與成員動態的手機優先情報介面。">
+    <meta name="theme-color" content="#0b0d11">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/static/icon.svg">
+    <link rel="stylesheet" href="/static/styles.css?v={{ asset_version }}">
+    <script defer src="/static/app.js?v={{ asset_version }}"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="https://nmixx.xthy.work">
+        <span class="brand-mark">N</span>
+        <span class="brand-url">https://nmixx.xthy.work</span>
+      </a>
+      <div class="topbar-actions">
+        <button class="icon-button notify-button" type="button" data-notify-toggle aria-label="開啟更新通知">!</button>
+      </div>
+    </header>
+
+    <main>
+      {% if session_renewal_required %}
+        <section class="content-section">
+          <div class="official-note">
+            <strong>登入期限即將到期</strong>
+            <span>請重新驗證密碼以延長登入期限，通知訂閱不會中斷。</span>
+            <form method="post" action="/account/renew" class="auth-form">
+              <label>目前密碼<input name="password" type="password" autocomplete="current-password" required></label>
+              <button class="primary-action" type="submit">重新驗證 <span>›</span></button>
+            </form>
+          </div>
+        </section>
+      {% endif %}
+      <section class="hero-section">
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <div class="source-pill">◎ 官方來源即時整理</div>
+            <h1>NMIXX <span>情報站</span></h1>
+            <p>手機優先的 NMIXX 情報中心：官方公告、影像、行程、作品和成員動態集中整理，所有內容保留來源連結。</p>
+            <div class="metric-grid">
+              <div><strong>{{ updates | length }}</strong><span>官方動態</span></div>
+              <div><strong>{{ schedule | length }}</strong><span>行程節點</span></div>
+              <div><strong>{{ releases | length }}</strong><span>近期作品</span></div>
+            </div>
+            <div class="hero-actions">
+              <a class="primary-action" href="#updates">最新動態 <span>›</span></a>
+              <a class="secondary-action" href="{{ official_links.youtube }}" target="_blank" rel="noreferrer">▶ 看影片</a>
+            </div>
+          </div>
+
+          <div class="hero-frame" data-carousel>
+            <div class="slide-stage">
+              {% for slide in hero_slides %}
+                <img
+                  class="hero-slide{% if loop.first %} is-active{% endif %}"
+                  src="{% if loop.first %}{{ image_url(slide.src, 900, 74) }}{% else %}data:image/gif;base64,R0lGODlhAQABAAAAACw={% endif %}"
+                  alt="{{ slide.alt }}"
+                  data-label="{{ slide.label }}"
+                  data-src="{{ image_url(slide.src, 900, 74) }}"
+                  data-source="{{ slide.source }}"
+                  loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+              {% endfor %}
+              <div class="hero-shade"></div>
+              <div class="image-credit">
+                <span>官方圖片來源</span>
+                <strong data-slide-source>{{ hero_slides[0].source }}</strong>
+                <small><span data-slide-label>{{ hero_slides[0].label }}</span> · <span data-slide-count>1/{{ hero_slides | length }}</span></small>
+              </div>
+              <div class="carousel-tools">
+                <div class="dots" aria-label="官方圖片輪播">
+                  {% for slide in hero_slides %}
+                    <button class="dot{% if loop.first %} is-active{% endif %}" type="button" data-slide="{{ loop.index0 }}" aria-label="切換到第 {{ loop.index }} 張官方圖片"></button>
+                  {% endfor %}
+                </div>
+                <a class="jump-button" href="{{ official_links.concept }}" target="_blank" rel="noreferrer" aria-label="開啟概念照來源">↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="updates" class="content-section">
+        <div class="section-heading">
+          <span>✦ 官方來源</span>
+          <h2>最新動態</h2>
+        </div>
+        <div class="scroll-grid four">
+          {% for item in updates %}
+            <a class="info-card update-card" href="{{ item.href }}" target="_blank" rel="noreferrer">
+              <div class="card-top">
+                <span class="tag tag-{{ item.tone }}">{{ item.tag }}</span>
+                <span class="open-notice">開啟通知 ↗</span>
+              </div>
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.meta }}</p>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section id="media" class="content-section">
+        <div class="section-heading">
+          <span>▶ 影音室</span>
+          <h2>官方影片</h2>
+        </div>
+        <a class="video-panel" href="{{ official_links.video }}" target="_blank" rel="noreferrer">
+          <div class="video-image">
+            <img src="{{ image_url(images.video, 1120, 70) }}" alt="NMIXX 官方影片縮圖" loading="lazy">
+            <span class="play-button">▶</span>
+          </div>
+          <div class="video-copy">
+            <div>
+              <span>NMIXX 官方 YouTube</span>
+              <h3>Heavy Serenade</h3>
+            </div>
+            <strong>↗</strong>
+          </div>
+        </a>
+      </section>
+
+      <section id="schedule" class="content-section">
+        <div class="section-heading">
+          <span>▦ 活動行程</span>
+          <h2>行程表</h2>
+        </div>
+        <div class="schedule-layout">
+          <a class="schedule-image" href="{{ official_links.schedule }}" target="_blank" rel="noreferrer">
+            <img src="{{ image_url(images.schedule, 520, 70) }}" alt="NMIXX 官方行程圖" loading="lazy">
+            <div>
+              <span>JYP 官方行程圖</span>
+              <strong>查看原始來源</strong>
+            </div>
+          </a>
+          <div class="schedule-list">
+            {% for date, title in schedule %}
+              <a class="schedule-row" href="{{ official_links.notice }}" target="_blank" rel="noreferrer">
+                <strong>{{ date }}</strong>
+                <span>{{ title }}<small>第 {{ loop.index }} 項</small></span>
+                <em>›</em>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section id="discography" class="content-section">
+        <div class="section-heading">
+          <span>♬ 作品索引</span>
+          <h2>近期作品</h2>
+        </div>
+        <div class="release-grid">
+          {% for release in releases %}
+            <a class="info-card release-card" href="{{ release.href }}" target="_blank" rel="noreferrer">
+              <div class="card-top">
+                <span class="soft-tag">{{ release.type }}</span>
+                <span class="release-index">0{{ loop.index }}</span>
+              </div>
+              <h3>{{ release.title }}</h3>
+              <p>◷ {{ release.date }} <span>↗</span></p>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section id="members" class="content-section">
+        <div class="section-heading">
+          <span>★ 成員介紹</span>
+          <h2>NMIXX 成員</h2>
+        </div>
+        <div class="scroll-grid members">
+          {% for member in members %}
+            <a class="member-card" href="{{ official_links.home }}" target="_blank" rel="noreferrer">
+              <img class="member-photo" src="{{ image_url(member.photo, 320, 70) }}" alt="{{ member.name }} 官方照片" loading="lazy">
+              <div class="member-head">
+                <div class="member-identity">
+                  <div>
+                    <span>0{{ loop.index }}</span>
+                    <h3>{{ member.name }}</h3>
+                  </div>
+                </div>
+                <strong>{{ member.focus }}</strong>
+              </div>
+              <p class="member-title">{{ member.title }}</p>
+              <p class="member-intro">{{ member.intro }}</p>
+              <small>官方成員資料 ↗</small>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section id="official-links" class="content-section final-section">
+        <div class="section-heading">
+          <span>◎ 官方入口</span>
+          <h2>外部連結指引</h2>
+        </div>
+        <div class="official-panel">
+          <div class="official-note">
+            <strong>只收錄官方來源</strong>
+            <span>點開會離開本站，前往 NMIXX / JYP 的官方網站或官方社群平台。</span>
+          </div>
+          <div class="channel-grid">
+            {% for channel in official_channels %}
+              <a class="channel-card" href="{{ channel.href }}" target="_blank" rel="noreferrer">
+                <span class="channel-icon">{{ channel.icon }}</span>
+                <span>
+                  <strong>{{ channel.name }} <small>{{ channel.label }}</small></strong>
+                  <em>{{ channel.desc }}</em>
+                </span>
+                <b>↗</b>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="主要導覽">
+      <a href="#">◎<span>首頁</span></a>
+      <a href="#updates">✦<span>動態</span></a>
+      <a href="#media">▶<span>影音</span></a>
+      <a href="#discography">♬<span>作品</span></a>
+      <a href="#members">♙<span>成員</span></a>
+    </nav>
+  </body>
+</html>

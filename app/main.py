@@ -164,6 +164,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             auth.revoke_user_sessions(session.user.id)
         return response
 
+    @application.post("/account/renew")
+    async def renew_account_session(request: Request, password: str = Form()) -> Response:
+        if transport_for(request) is not Transport.HTTPS:
+            raise HTTPException(status_code=403, detail="Session renewal requires HTTPS.")
+        session = require_user(request)
+        try:
+            renewed = auth.renew_session(session.token, "https", password)
+        except AuthenticationError:
+            raise HTTPException(status_code=401, detail="Invalid password.") from None
+        response = RedirectResponse("/", status_code=303)
+        set_session_cookie(response, renewed)
+        return response
+
     @application.get("/", response_class=HTMLResponse)
     async def home(request: Request) -> HTMLResponse:
         session = session_for(request)

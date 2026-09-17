@@ -1,6 +1,7 @@
 from pathlib import Path
 import tempfile
 import unittest
+from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -64,6 +65,33 @@ class WebAuthenticationTests(unittest.TestCase):
         self.assertEqual(registration.status_code, 303)
         self.assertIn("radar_https_session", registration.headers["set-cookie"])
         self.assertEqual(member_client.get("/", follow_redirects=False).status_code, 200)
+
+    def test_near_expiry_session_shows_renewal_prompt_and_rotates_after_password_check(self) -> None:
+        self.client.post(
+            "/login",
+            data={"username": "admin", "password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+        token = self.client.cookies.get("radar_https_session")
+        assert token is not None
+        old_session = self.client.app.state.auth.load_session(token, "https")
+        warning_time = datetime.now(UTC) + timedelta(days=10)
+        with self.client.app.state.database.connect() as connection:
+            connection.execute(
+                "UPDATE sessions SET absolute_expires_at = ? WHERE id = ?",
+                (warning_time.isoformat(), old_session.id),
+            )
+
+        page = self.client.get("/")
+        renewal = self.client.post(
+            "/account/renew",
+            data={"password": "test-password-not-for-production"},
+            follow_redirects=False,
+        )
+
+        self.assertIn("重新驗證", page.text)
+        self.assertEqual(renewal.status_code, 303)
+        self.assertNotEqual(self.client.cookies.get("radar_https_session"), token)
 
 
 if __name__ == "__main__":
