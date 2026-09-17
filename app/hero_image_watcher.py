@@ -7,7 +7,7 @@ import re
 import sys
 import time
 import urllib.request
-from datetime import date, datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -107,7 +107,7 @@ def should_check(
                 return (datetime.now(last_checked.tzinfo) - last_checked).total_seconds() >= minimum_interval_seconds
             except ValueError:
                 pass
-    return state.get("checked_date") != date.today().isoformat()
+    return state.get("checked_date") != datetime.now(UTC).date().isoformat()
 
 
 def run_once(
@@ -125,7 +125,7 @@ def run_once(
     runtime_data.initialize()
     state_path = state_path or runtime_data.data_dir / "hero_slides_state.json"
     state = read_json(state_path, {})
-    now = datetime.now().isoformat(timespec="seconds")
+    now = datetime.now(UTC).isoformat(timespec="seconds")
     if not should_check(state, force, minimum_interval_seconds):
         print(f"[same-day] hero slides already checked on {state.get('checked_at')}")
         return 0
@@ -153,7 +153,7 @@ def run_once(
             {
                 "source_url": source_url,
                 "hash": digest,
-                "checked_date": date.today().isoformat(),
+                "checked_date": datetime.now(UTC).date().isoformat(),
                 "checked_at": now,
                 "image_count": len(urls),
                 "images": urls,
@@ -167,7 +167,7 @@ def watch(interval_seconds: int, **kwargs: Any) -> None:
     while True:
         try:
             run_once(**kwargs)
-        except Exception as error:
+        except (OSError, TimeoutError, ValueError) as error:
             print(f"[error] {error}", file=sys.stderr)
         time.sleep(interval_seconds)
 

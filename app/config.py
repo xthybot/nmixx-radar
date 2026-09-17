@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 
 from dotenv import load_dotenv
-
 
 SAMPLE_BOOTSTRAP_PASSWORD = "change-me-before-first-start"
 
@@ -60,7 +59,7 @@ class Settings:
         return self.data_dir / "radar.sqlite3"
 
     @classmethod
-    def from_env(cls, values: Mapping[str, str] | None = None) -> "Settings":
+    def from_env(cls, values: Mapping[str, str] | None = None) -> Settings:
         load_dotenv(override=False)
         source = os.environ if values is None else values
         data_dir = Path(source.get("DATA_DIR", "./data")).expanduser()
@@ -95,7 +94,7 @@ class Settings:
         )
 
     @classmethod
-    def for_test(cls, data_dir: Path) -> "Settings":
+    def for_test(cls, data_dir: Path) -> Settings:
         return cls.from_env(
             {
                 "DATA_DIR": str(data_dir),

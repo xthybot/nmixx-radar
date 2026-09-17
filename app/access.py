@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from enum import StrEnum
 import ipaddress
+from enum import StrEnum
 
 from fastapi import Request
 

@@ -13,7 +13,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
@@ -310,16 +310,16 @@ def review_with_heuristics(source: Source, current_text: str) -> dict[str, Any]:
     if source.name.startswith("Google News"):
         include_terms = re.compile(
             r"공연|투어|시구|개최|확정|발매|공개|컴백|콘서트|AAA|tour|concert|release|comeback",
-            re.I,
+            re.IGNORECASE,
         )
-        exclude_terms = re.compile(r"포토|앰버서더|로션|출시|지원사격|photo|ambassador|lotion", re.I)
+        exclude_terms = re.compile(r"포토|앰버서더|로션|출시|지원사격|photo|ambassador|lotion", re.IGNORECASE)
         seen_hrefs: set[str] = set()
         for index, line in enumerate(lines):
             if line.startswith(("http://", "https://", "CBMi")) or "<a href=" in line:
                 continue
             if "google" in line.lower() and "新聞" in line:
                 continue
-            if not re.search(r"NMIXX|엔믹스", line, re.I):
+            if not re.search(r"NMIXX|엔믹스", line, re.IGNORECASE):
                 continue
             if not include_terms.search(line) or exclude_terms.search(line):
                 continue
@@ -507,7 +507,7 @@ def parse_json_response(text: str) -> dict[str, Any]:
     try:
         result = json.loads(cleaned)
     except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", cleaned, re.S)
+        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
         if not match:
             return {"is_new": False, "items": [], "reason": "AI did not return JSON.", "error": True}
         result = json.loads(match.group(0))
@@ -528,7 +528,7 @@ def compact_notification_title(item: dict[str, str], max_chars: int = 18) -> str
     if not title:
         title = str(item.get("title", "")).strip()
     title = re.sub(r"\s+", " ", title)
-    title = re.sub(r"\s*[·|｜-]\s*JYP.*$", "", title, flags=re.I)
+    title = re.sub(r"\s*[·|｜-]\s*JYP.*$", "", title, flags=re.IGNORECASE)
     title = title.replace("NMIXX, Anderson .Paak", "Caution")
     title = title.replace("NMIXX(엔믹스)", "NMIXX")
     title = title.strip(" -·｜|")
@@ -586,12 +586,12 @@ def run_once(
         push_service = PushService(database, settings)
     collected_new_items: list[dict[str, str]] = []
     existing_updates = runtime_data.read_updates()
-    now = datetime.now().isoformat(timespec="seconds")
+    now = datetime.now(UTC).isoformat(timespec="seconds")
 
     for source in sources:
         try:
             digest, current_text = fetch_source(source)
-        except Exception as error:
+        except (OSError, TimeoutError, ValueError) as error:
             print(f"[error] {source.name}: {error}", file=sys.stderr)
             continue
 

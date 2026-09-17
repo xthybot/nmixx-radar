@@ -1,7 +1,7 @@
-from datetime import UTC, datetime, timedelta
-from pathlib import Path
 import tempfile
 import unittest
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from app.auth import AuthService, SessionError
 from app.config import Settings

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
 from app.runtime_data import RuntimeDataStore
 from app.site_data import get_site_data

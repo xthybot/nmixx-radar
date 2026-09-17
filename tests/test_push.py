@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
 from app.auth import AuthService
 from app.config import Settings
 from app.database import Database
 from app.push import PushError, PushService
-
 
 VALID_SUBSCRIPTION = {
     "endpoint": "https://push.example.test/subscription/opaque-token",

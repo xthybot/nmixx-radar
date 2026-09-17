@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from io import BytesIO
-from pathlib import Path
 import tempfile
 import unittest
+from io import BytesIO
+from pathlib import Path
 
 import httpx
 from fastapi import HTTPException

@@ -7,7 +7,6 @@ from app.runtime_data import RuntimeDataStore
 from app.site_data import get_site_data
 from app.update_watcher import dedupe_items
 
-
 HAN = re.compile(r"[\u3400-\u9fff]")
 HANGUL = re.compile(r"[\uac00-\ud7af]")
 

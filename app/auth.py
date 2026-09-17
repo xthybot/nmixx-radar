@@ -1,17 +1,16 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
 import hashlib
 import re
 import secrets
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 
 from app.config import Settings
 from app.database import Database
-
 
 USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]{2,31}$")
 PASSWORD_MINIMUM_LENGTH = 12

@@ -3,14 +3,27 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import Body, FastAPI, Form, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.access import Transport, request_transport
-from app.auth import AuthService, AuthenticationError, AuthenticatedSession, InvitationError, SessionError
+from app.auth import (
+    AuthenticatedSession,
+    AuthenticationError,
+    AuthService,
+    InvitationError,
+    SessionError,
+)
 from app.config import Settings
 from app.database import Database
 from app.image_proxy import ImageProxy, image_url
@@ -18,7 +31,6 @@ from app.push import PushError, PushService
 from app.rate_limit import RateLimiter
 from app.runtime_data import RuntimeDataStore
 from app.site_data import get_site_data
-
 
 ASSET_VERSION = "20260917-auth1"
 HTTPS_SESSION_COOKIE = "radar_https_session"
@@ -296,7 +308,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"publicKey": push.public_key()}
 
     @application.post("/api/push/subscribe", status_code=201)
-    async def push_subscribe(request: Request, subscription: dict[str, object] = Body()) -> Response:
+    async def push_subscribe(
+        request: Request, subscription: Annotated[dict[str, object], Body()]
+    ) -> Response:
         session = require_https_user(request)
         if not rate_limiter.allow("push-subscribe", str(session.user.id), limit=10, window_seconds=3600):
             raise HTTPException(status_code=429, detail="Too many push subscription changes.")
@@ -307,7 +321,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return Response(status_code=201)
 
     @application.delete("/api/push/subscribe")
-    async def push_unsubscribe(request: Request, payload: dict[str, object] = Body()) -> Response:
+    async def push_unsubscribe(
+        request: Request, payload: Annotated[dict[str, object], Body()]
+    ) -> Response:
         session = require_https_user(request)
         endpoint = str(payload.get("endpoint", ""))
         try:

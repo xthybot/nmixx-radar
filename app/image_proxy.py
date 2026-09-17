@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import os
+import tempfile
 from hashlib import sha256
 from io import BytesIO
-import os
 from pathlib import Path
-import tempfile
 from urllib.parse import urlencode, urlparse
 
 import httpx
@@ -14,7 +14,6 @@ from fastapi.responses import FileResponse
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app.config import Settings
-
 
 ALLOWED_HOSTS = {
     "d1al7qj7ydfbpt.cloudfront.net",
@@ -48,7 +47,7 @@ class ImageProxy:
         return source
 
     def _cache_path(self, source: str, width: int, quality: int) -> Path:
-        key = sha256(f"{source}|{width}|{quality}|webp-v2".encode("utf-8")).hexdigest()
+        key = sha256(f"{source}|{width}|{quality}|webp-v2".encode()).hexdigest()
         return self.cache_dir / f"{key}.webp"
 
     async def fetch_source(self, source: str) -> bytes:

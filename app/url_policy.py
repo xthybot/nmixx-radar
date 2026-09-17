@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from urllib.parse import urlsplit
 
-
 ALLOWED_EXTERNAL_HOSTS = frozenset(
     {
         "nmixx.jype.com",

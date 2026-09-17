@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from app.config import Settings
@@ -23,9 +23,8 @@ class SettingsTests(unittest.TestCase):
                 "BOOTSTRAP_ADMIN_PASSWORD": "change-me-before-first-start",
             },
             clear=False,
-        ):
-            with self.assertRaisesRegex(ValueError, "BOOTSTRAP_ADMIN_PASSWORD"):
-                Settings.from_env()
+        ), self.assertRaisesRegex(ValueError, "BOOTSTRAP_ADMIN_PASSWORD"):
+            Settings.from_env()
 
     def test_parses_trusted_proxy_addresses(self) -> None:
         with patch.dict(os.environ, {"TRUSTED_PROXY_IPS": "127.0.0.1, ::1"}, clear=False):

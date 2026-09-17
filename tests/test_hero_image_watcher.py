@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from pathlib import Path
 import tempfile
 import unittest
 from datetime import UTC, datetime
+from pathlib import Path
 from unittest.mock import patch
 
 from app.hero_image_watcher import run_once

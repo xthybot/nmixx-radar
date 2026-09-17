@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import base64
-from datetime import UTC, datetime
 import json
 import os
-from pathlib import Path
 import tempfile
-from typing import Any
+from datetime import UTC, datetime
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from py_vapid import Vapid
@@ -16,7 +15,6 @@ from pywebpush import WebPushException, webpush
 
 from app.config import Settings
 from app.database import Database
-
 
 MAX_ENDPOINT_LENGTH = 4096
 MAX_KEY_LENGTH = 512
@@ -165,7 +163,7 @@ class PushService:
                 failed += 1
                 if getattr(error.response, "status_code", None) in {404, 410}:
                     expired.append(subscription["endpoint"])
-            except Exception:
+            except (OSError, TimeoutError, ValueError):
                 failed += 1
         if expired:
             with self.database.connect() as connection:
