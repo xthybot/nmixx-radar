@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import Body, FastAPI, Form, HTTPException, Request
 from fastapi.responses import (
@@ -128,7 +128,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
 
     @application.get("/login", response_class=HTMLResponse)
-    async def login_form(request: Request) -> HTMLResponse:
+    async def login_form(request: Request) -> Response:
         if session_for(request):
             return login_redirect()
         return templates.TemplateResponse(request, "login.html", {"asset_version": ASSET_VERSION, "error": None})
@@ -166,7 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return response
 
     @application.get("/register", response_class=HTMLResponse)
-    async def registration_form(request: Request) -> HTMLResponse:
+    async def registration_form(request: Request) -> Response:
         if session_for(request):
             return login_redirect()
         return templates.TemplateResponse(request, "register.html", {"asset_version": ASSET_VERSION, "error": None})
@@ -231,7 +231,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return response
 
     @application.get("/", response_class=HTMLResponse)
-    async def home(request: Request) -> HTMLResponse:
+    async def home(request: Request) -> Response:
         session = session_for(request)
         if not session:
             return login_redirect()
@@ -250,7 +250,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @application.get("/api/updates")
     async def updates_api(request: Request) -> dict[str, object]:
         require_user(request)
-        updates = get_site_data(runtime_data)["updates"]
+        updates = cast(list[dict[str, object]], get_site_data(runtime_data)["updates"])
         payload = json.dumps(updates, ensure_ascii=False, sort_keys=True)
         return {"signature": hashlib.sha256(payload.encode("utf-8")).hexdigest(), "count": len(updates), "latest": updates[0] if updates else None, "updates": updates}
 

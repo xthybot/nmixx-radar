@@ -67,7 +67,10 @@ class PushService:
         return vapid
 
     def public_key(self) -> str:
-        public_numbers = self._vapid().public_key.public_numbers()
+        public_key = self._vapid().public_key
+        if public_key is None:
+            raise PushError("VAPID public key is unavailable.")
+        public_numbers = public_key.public_numbers()
         raw = b"\x04"
         raw += public_numbers.x.to_bytes(32, "big")
         raw += public_numbers.y.to_bytes(32, "big")
