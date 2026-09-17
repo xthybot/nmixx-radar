@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b0d11">
+    <title>登入｜NMIXX Radar</title>
+    <link rel="stylesheet" href="/static/styles.css?v={{ asset_version }}">
+  </head>
+  <body class="auth-page">
+    <main class="auth-card">
+      <p class="source-pill">◎ NMIXX Radar</p>
+      <h1>登入情報站</h1>
+      <p>受邀成員可登入後查看更新並啟用通知。</p>
+      {% if error %}<p class="auth-error" role="alert">{{ error }}</p>{% endif %}
+      <form method="post" action="/login" class="auth-form">
+        <label>帳號<input name="username" autocomplete="username" required></label>
+        <label>密碼<input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="primary-action" type="submit">登入 <span>›</span></button>
+      </form>
+    </main>
+  </body>
+</html>
